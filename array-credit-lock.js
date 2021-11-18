@@ -11,14 +11,13 @@ const customHistoryDate = (date) => {
   const day = historyDate.getDate();
   const month = historyDate.getMonth() + 1;
   const year = historyDate.getFullYear();
-  const hour = historyDate.getHours();
-  const minute = `${historyDate.getMinutes()}`[0];
   const period = historyDate.toLocaleString("en-US", {
-    hour: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
     hour12: true,
   });
   const gmt = -historyDate.getTimezoneOffset() / 60;
-  const displayDate = `${year}-${month}-${day} ${hour}:${minute}${period} GMT +${gmt}`;
+  const displayDate = `${year}-${month}-${day} ${period} GMT +${gmt}`;
   return displayDate;
 };
 
@@ -28,6 +27,10 @@ const renderHistory = (historyData, historyIndex) => {
   if (historyData && historyIndex) {
     //Get the custom history lock date format
     const historyDate = customHistoryDate(historyData.date);
+
+    //Conditionally determine if a history is Locked or Unlocked
+    const lockHistoryState =
+      historyData.type === "enrollment" ? "Locked" : "Unlocked";
 
     //The history UI component
     const historyComponent = `
@@ -49,7 +52,7 @@ const renderHistory = (historyData, historyIndex) => {
                   </g>
                   </g>
               </svg>
-          <span class="lock">${historyData.type}</span>
+          <span class="lock">${lockHistoryState}</span>
           </div>
       </li>
 `;
@@ -68,7 +71,7 @@ const lockHistory = async () => {
     // Fetch lock history data from local json file-path: "test-1_data.json"
     const response = await fetch("test-1_data.json");
 
-    // Catch a repsonse error if the endpoint is faulty or fails to return any data
+    //TODO: Catch a repsonse error if the endpoint is faulty or fails to return any data
     if (response.ok) {
       const data = await response.json();
 
@@ -79,7 +82,6 @@ const lockHistory = async () => {
 
       // Dynamically display the total number of lock history entries
       showAll.innerHTML = `Show All (${data.length})`;
-
 
       //TODO: Filter the history lock data based on specific actions
 
@@ -137,9 +139,13 @@ const lockHistory = async () => {
           }
         });
       }
+    } else {
+      //TODO: Remove the lock history feature compelely from the frontend if the history data failed to fetch correctly
+      showAll.style.display = "none";
+      hideAll.style.display = "none";
     }
   } catch (error) {
-    // console.log(error);
+    console.log(error);
   }
 };
 
